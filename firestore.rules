@@ -1,0 +1,138 @@
+rules_version = '2';
+
+// Paste this into: Firebase console -> Build -> Firestore Database -> Rules
+// tab -> replace everything -> Publish. See Read_Me/FIREBASE_SETUP_GUIDE.md.
+//
+// The members, expenses, locations, settings/app, payments,
+// settings/payments and announcements collections below all have real
+// rules now. Itinerary is still mock data in src/data/ — there's nothing
+// to protect there yet; add a matching `match /xyz/{id} { ... }` block
+// here when that moves to Firestore too. Anything NOT explicitly
+// allowed below is denied by default.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // True only for the one pre-agreed Owner email — checked straight off
+    // the caller's own verified Firebase Auth token, NOT a Firestore read.
+    // That's deliberate: it means Owner status can never depend on signup
+    // order or on any document already existing, so there's no bootstrap
+    // race to worry about (unlike an earlier version of this rule that
+    // looked up role:'owner' in Firestore itself). Must match OWNER_EMAIL
+    // in src/context/AuthContext.jsx exactly. See PROJECT_PLAN.md §10.5.
+    function isOwner() {
+      return request.auth != null &&
+        request.auth.token.email == 'vijaymishra2205@gmail.com';
+    }
+
+    match /members/{uid} {
+      // Any logged-in traveller can see the whole roster (needed for the
+      // Group page) — but can only create their OWN member document (the
+      // one whose id matches their own login uid).
+      allow read: if request.auth != null;
+      // The create itself has to match what signUp() in AuthContext.jsx
+      // sends: the Owner's email may only create role:'owner'+active:true,
+      // and every other email may only create role:'member'+active:false.
+      // This is what actually decides who the Owner is — a tampered
+      // client (or someone calling Firestore directly from devtools) can't
+      // just claim role:'owner' for themselves, no matter when they sign up.
+      allow create: if request.auth != null && request.auth.uid == uid &&
+        (
+          (isOwner() &&
+            request.resource.data.role == 'owner' &&
+            request.resource.data.active == true) ||
+          (!isOwner() &&
+            request.resource.data.role == 'member' &&
+            request.resource.data.active == false)
+        );
+      // You can edit your OWN document, but never your own `active` or
+      // `role` field — only the Owner can approve a pending sign-up or
+      // change a role. Without this, the whole approval gate below would be
+      // pointless: anyone could just flip their own `active` to true.
+      allow update: if request.auth != null && (
+        isOwner() ||
+        (request.auth.uid == uid &&
+          request.resource.data.active == resource.data.active &&
+          request.resource.data.role == resource.data.role &&
+          request.resource.data.locationOverride == resource.data.locationOverride)
+      );
+      // Only the Owner can remove a traveller (rejecting a pending sign-up,
+      // or freeing a seat after testing is done).
+      allow delete: if isOwner();
+    }
+
+    match /expenses/{expenseId} {
+      // Any logged-in traveller can see every expense (needed to compute
+      // group balances) and add a new one — but only stamped as themselves
+      // (createdBy must match their own uid, so nobody can log an expense
+      // "as" someone else).
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.createdBy == request.auth.uid;
+      // Only the Owner can delete a wrongly-entered expense (wrong amount,
+      // wrong person, etc.) — the fix is delete + have the right person
+      // re-add it correctly. No in-place edit button exists, so update
+      // stays denied until that's actually built.
+      allow update: if false;
+      allow delete: if isOwner();
+    }
+
+    match /locations/{uid} {
+      // The Owner can always read every member's location, regardless of
+      // the sharing switch below — their one standing advantage, same
+      // spirit as the owner-only controls above. A regular member can read
+      // a given member's pin only if that member's locationOverride is
+      // true, or isn't false and the Owner has switched sharing ON via
+      // settings/app. See PROJECT_PLAN.md's location-sharing section.
+      allow read: if request.auth != null &&
+        (isOwner() ||
+          get(/databases/$(database)/documents/members/$(uid)).data.get('locationOverride', null) == true ||
+          (
+            get(/databases/$(database)/documents/members/$(uid)).data.get('locationOverride', null) != false &&
+            get(/databases/$(database)/documents/settings/app).data.get('locationSharingEnabled', false) == true
+          ));
+      // Always only your OWN location document, written automatically in
+      // the background (no "share my location?" switch is ever shown to a
+      // member — capture itself was already decided separately, this rule
+      // only governs who gets to read it afterward).
+      allow create, update: if request.auth != null && request.auth.uid == uid;
+      // No history is kept — a location doc is overwritten in place, never
+      // deleted.
+      allow delete: if false;
+    }
+
+    match /settings/app {
+      // Every logged-in member needs to read this (it's what tells their
+      // own app whether to show the map or the "ask the Owner" placeholder)
+      // but only the Owner can flip it.
+      allow read: if request.auth != null;
+      allow write: if isOwner();
+    }
+
+    match /payments/{uid} {
+      // Any logged-in traveller can see every payment record (needed for
+      // Admin's review list and the "needs review"/collected totals). A
+      // member can only ever self-report their OWN payment into
+      // 'under_verification' — never straight to 'paid', and never anyone
+      // else's doc. Only the Owner's review can actually confirm a payment.
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null &&
+        (isOwner() ||
+          (request.auth.uid == uid && request.resource.data.status == 'under_verification'));
+      allow delete: if isOwner();
+    }
+
+    match /settings/payments {
+      // Same pattern as settings/app: everyone needs to read the package
+      // total (it drives everyone's expected share), only the Owner sets it.
+      allow read: if request.auth != null;
+      allow write: if isOwner();
+    }
+
+    match /announcements/{id} {
+      // Anyone can read; only the Owner can post, stamped as themselves.
+      // No edit-in-place — same delete-and-repost pattern as expenses.
+      allow read: if request.auth != null;
+      allow create: if isOwner() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if false;
+      allow delete: if isOwner();
+    }
+  }
+}
