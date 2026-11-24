@@ -37,7 +37,7 @@ export default function AppShell() {
     <div className="mx-auto flex min-h-screen max-w-6xl flex-col md:flex-row">
       <aside className="hidden w-64 shrink-0 border-r border-white/5 p-4 md:flex md:flex-col">
         <div className="mb-6 px-2">
-          <p className="font-display text-lg font-semibold text-white">TRIPVERSE</p>
+          <p className="font-display text-lg font-semibold text-white">TRIPVISER</p>
           <p className="text-xs text-slate-400">{tripConfig.tripName}</p>
         </div>
         <nav className="flex flex-1 flex-col gap-1">
@@ -53,7 +53,7 @@ export default function AppShell() {
 
       <header className="flex items-center justify-between border-b border-white/5 px-4 py-3 md:hidden">
         <div>
-          <p className="font-display text-base font-semibold text-white">TRIPVERSE</p>
+          <p className="font-display text-base font-semibold text-white">TRIPVISER</p>
           <p className="text-xs text-slate-400">{tripConfig.tripName}</p>
         </div>
         <AccountMenu compact />

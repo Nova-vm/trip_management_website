@@ -77,7 +77,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-4">
       <div className="text-center">
         <Mountain className="mx-auto h-9 w-9 text-mountain-400" />
-        <p className="mt-2 font-display text-xl font-semibold text-white">TRIPVERSE</p>
+        <p className="mt-2 font-display text-xl font-semibold text-white">TRIPVISER</p>
         <p className="text-sm text-slate-400">Himachal Expedition 2026</p>
       </div>
 

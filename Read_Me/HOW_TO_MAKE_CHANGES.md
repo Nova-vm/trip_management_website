@@ -1,4 +1,4 @@
-# How to Make Changes to TRIPVERSE
+# How to Make Changes to TRIPVISER
 
 This is the one file to open when you want to change something and aren't sure where.
 Every section below follows the exact same pattern, so once one of them makes sense,
@@ -13,7 +13,7 @@ lose this file, opening the right file will remind you.
 Think of each of the 8 tabs (Home, Itinerary, Journey, Expenses, Payments, Group, Profile,
 Admin) as its own mini Flask app with its own template and its own data:
 
-| Flask word you know | TRIPVERSE equivalent |
+| Flask word you know | TRIPVISER equivalent |
 |---|---|
 | `app.py` route / view function | `src/pages/XPage.jsx` — one file per tab |
 | template (`.html`) | `src/components/x/*.jsx` — the visual pieces that page uses |
@@ -45,6 +45,36 @@ a small error card instead of taking down the whole app.
 | Login / Account | `src/pages/LoginPage.jsx` | Firebase Authentication + Firestore `members`, via `src/context/AuthContext.jsx` | `src/components/layout/AccountMenu.jsx` |
 
 ---
+
+## Site name / branding
+
+**What it shows:** the "TRIPVISER" wordmark on the login screen and in the sidebar
+(desktop)/header (mobile) of every page, the browser tab title, and the name shown if someone
+adds the site to their phone's home screen.
+
+**To rename the site**, there's no single source of truth yet — update the name in each of
+these places:
+- `src/pages/LoginPage.jsx` — the wordmark on the login screen itself.
+- `src/components/layout/AppShell.jsx` — the wordmark shown in the desktop sidebar **and** the
+  mobile top header (two separate lines in the same file — both need changing).
+- `index.html` — the browser tab title (`<title>`) and the `<meta name="description">` line.
+- `public/manifest.webmanifest` — the `name`/`short_name` used if someone adds the site to
+  their phone's home screen.
+- `package.json` — the `"name"` field. Nobody ever sees this one, but keep it in sync so it
+  doesn't confuse whoever (human or AI) opens the project next.
+- This file's own title, and `Read_Me/PROJECT_PLAN.md`'s title — cosmetic, but keeps every doc
+  calling the project the same thing.
+
+**Don't rename:** the GitHub repo itself or the live URL
+(`nova-vm.github.io/trip_management_website/`) — changing either would break the link already
+shared with and bookmarked by the group; a rename here only ever changes what's *displayed*,
+never the address. Also leave every `tripverse-f6240` you see (in
+`Read_Me/FIREBASE_SETUP_GUIDE.md`) completely alone — that's the real, fixed Firebase backend
+project's ID, assigned once when it was created, and has nothing to do with the site's display
+name — the same way a company can rebrand its product while its internal server hostname never
+changes.
+
+**Renamed TRIPVERSE → TRIPVISER on 2026-11-24** — see `PROJECT_PLAN.md` §10.10.
 
 ## Home
 
@@ -230,6 +260,9 @@ button.
 account box at the bottom of the desktop sidebar / top-right of the mobile header.
 
 **Common changes:**
+- Change how the login/signup screen itself looks (logo, tagline, colors, layout, the Log
+  in/Sign up toggle, form fields, button) → it's all in one file, `src/pages/LoginPage.jsx` —
+  no separate components folder for this page yet.
 - Change the error messages shown for bad logins → the `ERROR_MESSAGES` map at the top of
   `src/pages/LoginPage.jsx`.
 - Change how the account box looks, or what the Logout button does →

@@ -1,4 +1,4 @@
-# TRIPVERSE — Project Plan & Working Notes
+# TRIPVISER — Project Plan & Working Notes
 
 *Last updated: 2026-11-24 — Phase 2 step 1 (Login) and step 2 (Expenses) shipped; deploy prep done; Owner approval gate + remove-member control added; Owner switched to a fixed hardcoded email instead of "first signup"; fixed a real bug where /login never redirected away after a successful signup/login; added self-serve "Forgot password?", Owner-triggered member password reset, and Owner-only expense delete; added live location sharing on Journey (Phase 3 pulled forward) with an Owner-controlled visibility switch; added a per-member location override, moved Payments to real Firestore data with a dynamic even-split, and added real Announcements — Admin is now the one place the Owner manages the whole trip from.*
 
@@ -26,7 +26,7 @@ it explains the whole project and links out to the rest below for specifics.
   Source Control panel instead of typing terminal commands — written for someone brand new
   to Git/GitHub.
 
-## 1. What TRIPVERSE is
+## 1. What TRIPVISER is
 
 A private, mobile-first web app for the group's Himachal Expedition 2026 trip
 (12–18 Dec 2026, Delhi → Manali → Solang Valley → Kullu → Manikaran → Kasol →
@@ -42,7 +42,7 @@ No, and here's why that's not a limitation we need to work around:
 - **GitHub** stores your code and, through **GitHub Pages**, can serve static
   files (HTML/CSS/JS) for free. That's it — no server process, no database.
   It's the equivalent of hosting a folder of already-rendered files.
-- TRIPVERSE needs logins and a live-updating database (who's paid, who owes
+- TRIPVISER needs logins and a live-updating database (who's paid, who owes
   what, where the group currently is). That requires something GitHub itself
   doesn't provide.
 
@@ -735,3 +735,24 @@ just a dashboard of numbers.
    is live — it isn't auto-assigned to anyone, since the app has no way to know who paid it in
    real life. Do this once from Admin's "Payment review" list, the same way you'd record any
    other real payment.
+
+### 10.10 Renamed TRIPVERSE → TRIPVISER — 2026-11-24
+
+Pure rebrand — no behavior, data, or URLs changed. Updated every place the old name appeared
+as user-visible text or doc prose: `src/pages/LoginPage.jsx` (login screen wordmark),
+`src/components/layout/AppShell.jsx` (sidebar + mobile header wordmark, two lines), `index.html`
+(tab title + meta description), `public/manifest.webmanifest` (`name`/`short_name`, used if
+someone adds the site to their home screen), `package.json` (`"name"` field, internal only),
+and this file's + `HOW_TO_MAKE_CHANGES.md`'s own titles. Added a new "Site name / branding"
+section to `HOW_TO_MAKE_CHANGES.md` listing all of the above in one place, so a future rename
+doesn't need re-discovering every file by hand (or re-grepping the whole repo).
+
+**Deliberately left untouched:** the GitHub repo name and the live URL
+(`nova-vm.github.io/trip_management_website/`) — renaming either would break the link already
+shared with and bookmarked by the group, for zero benefit. Also every `tripverse-f6240`
+mention in `FIREBASE_SETUP_GUIDE.md` — that's the real, fixed Firebase project ID, assigned
+once at creation; it has nothing to do with the display name and can't be casually renamed
+without recreating the whole backend (not something anyone asked for). The deploy-mechanics
+guides (`GITHUB_DEPLOY_GUIDE.md`, `GIT_AND_VSCODE_GUIDE.md`) also weren't touched — their
+mentions of the old name are just prose describing the deploy process, not something that
+needs to track the brand 1:1.
